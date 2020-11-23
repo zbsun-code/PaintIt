@@ -52,6 +52,7 @@ public class Ui {
                 String filePath = fileChooser.getSelectedFile().getPath();
                 try {
                     drawBoard.getShapes().removeAllElements();
+                    History.histories.removeAllElements();
                     FileModule.readFile(filePath, drawBoard.getShapes(), drawBoard);
                     drawBoard.repaint();
                     actionMenu.currentShape.updateData();
@@ -169,6 +170,9 @@ class ActionMenu extends JPanel {
                         fontStyleSelector.setVisible(true);
                         doNotRecordHistory = true;
                         textField.setText(((Text)shapes.elementAt(currentShape.getSelectedIndex())).getText());
+                        fontSelector.setSelectedItem(((Text) shapes.elementAt(currentShape.getSelectedIndex())).font);
+                        fontSizeSelector.setSelectedItem(((Text)shapes.elementAt(currentShape.getSelectedIndex())).size);
+                        fontStyleSelector.setSelectedIndex(((Text)shapes.elementAt(currentShape.getSelectedIndex())).style);
                         doNotRecordHistory = false;
                     } else {
                         textField.setVisible(false);
@@ -303,7 +307,7 @@ class ActionMenu extends JPanel {
             public void changedUpdate(DocumentEvent e) {
                 if (!doNotRecordHistory) {
                     System.out.println("changedUpdate");
-                    History.histories.add(new History(History.ActionMode.TEXTCHANGE, shapes.elementAt(currentShape.getSelectedIndex()), ((Text)shapes.elementAt(currentShape.getSelectedIndex())).text));
+                    History.histories.add(new History(History.ActionMode.TEXTCHANGE, shapes.elementAt(currentShape.getSelectedIndex()), ((Text)shapes.elementAt(currentShape.getSelectedIndex())).text, null, -1, -1));
                     ((Text)shapes.elementAt(currentShape.getSelectedIndex())).setText(textField.getText());
                     dwb.repaint();
                 }
@@ -313,24 +317,39 @@ class ActionMenu extends JPanel {
         fontSelector.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-                ((Text)shapes.elementAt(currentShape.getSelectedIndex())).font = (String)fontSelector.getSelectedItem();
-                dwb.repaint();
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    if (!doNotRecordHistory) {
+                        History.histories.add(new History(History.ActionMode.TEXTCHANGE, (Text) shapes.elementAt(currentShape.getSelectedIndex()), null, ((Text) shapes.elementAt(currentShape.getSelectedIndex())).font, -1, -1));
+                        ((Text) shapes.elementAt(currentShape.getSelectedIndex())).font = (String) fontSelector.getSelectedItem();
+                        dwb.repaint();
+                    }
+                }
             }
         });
 
         fontSizeSelector.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-                ((Text)shapes.elementAt(currentShape.getSelectedIndex())).size = (int)fontSizeSelector.getSelectedItem();
-                dwb.repaint();
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    if (!doNotRecordHistory) {
+                        History.histories.add(new History(History.ActionMode.TEXTCHANGE, (Text) shapes.elementAt(currentShape.getSelectedIndex()), null, null, ((Text) shapes.elementAt(currentShape.getSelectedIndex())).size, -1));
+                        ((Text) shapes.elementAt(currentShape.getSelectedIndex())).size = (int) fontSizeSelector.getSelectedItem();
+                        dwb.repaint();
+                    }
+                }
             }
         });
 
         fontStyleSelector.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-                ((Text)shapes.elementAt(currentShape.getSelectedIndex())).style = fontStyleSelector.getSelectedIndex();
-                dwb.repaint();
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    if (!doNotRecordHistory) {
+                        History.histories.add(new History(History.ActionMode.TEXTCHANGE, (Text) shapes.elementAt(currentShape.getSelectedIndex()), null, null, -1, ((Text) shapes.elementAt(currentShape.getSelectedIndex())).style));
+                        ((Text) shapes.elementAt(currentShape.getSelectedIndex())).style = fontStyleSelector.getSelectedIndex();
+                        dwb.repaint();
+                    }
+                }
             }
         });
     }
