@@ -7,7 +7,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
@@ -34,6 +33,7 @@ public class Ui {
         frame.setLayout(new BorderLayout(10, 5));
 
         DrawBoard drawBoard = new DrawBoard();
+        History.drawBoard = drawBoard;
         Palette palette = new Palette(drawBoard);
         ActionMenu actionMenu = new ActionMenu(drawBoard, palette);
         actionMenu.setPreferredSize(new Dimension(800,70));
@@ -116,6 +116,8 @@ class ActionMenu extends JPanel {
 
     Vector<JButton> buttons = new Vector<>();
 
+    boolean doNotRecordHistory = false;
+
     public class UpdatableCombobox extends JComboBox {
         public void updateData() {
             this.removeAllItems();
@@ -165,13 +167,20 @@ class ActionMenu extends JPanel {
                         fontSelector.setVisible(true);
                         fontSizeSelector.setVisible(true);
                         fontStyleSelector.setVisible(true);
+                        doNotRecordHistory = true;
                         textField.setText(((Text)shapes.elementAt(currentShape.getSelectedIndex())).getText());
+                        doNotRecordHistory = false;
                     } else {
                         textField.setVisible(false);
                         fontSelector.setVisible(false);
                         fontSizeSelector.setVisible(false);
                         fontStyleSelector.setVisible(false);
                     }
+                } else {
+                    textField.setVisible(false);
+                    fontSelector.setVisible(false);
+                    fontSizeSelector.setVisible(false);
+                    fontStyleSelector.setVisible(false);
                 }
             }
         });
@@ -242,14 +251,17 @@ class ActionMenu extends JPanel {
                 else if (e.getSource().equals(btnDelete)) {
                     System.out.println("delete");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
-                    dwb.delShapeAt(dwb.selectedShapeIndex);
+                    if (dwb.delShapeAt(dwb.selectedShapeIndex)){
+                        History.histories.add(new History(History.ActionMode.DELETE, shapes.elementAt(dwb.selectedShapeIndex)));
+                    }
                     currentShape.updateData();
                 }
                 else if (e.getSource().equals(btnUndo)) {
                     System.out.println("undo");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
-//                    dwb.delLastShape();
+                    History.undo();
                     currentShape.updateData();
+                    currentShape.setSelectedIndex(-1);
                 }
                 if (dwb.getCurrentDrawMode() == DrawBoard.DrawMode.WRITEABLE)
                     currentShape.setSelectedIndex(-1);
@@ -280,20 +292,21 @@ class ActionMenu extends JPanel {
 
         textField.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) {
-                System.out.println("insertUpdate");
-                ((Text)shapes.elementAt(currentShape.getSelectedIndex())).setText(textField.getText());
-                dwb.repaint();
+                changedUpdate(e);
             }
 
             public void removeUpdate(DocumentEvent e) {
-                System.out.println("removeUpdate");
-                ((Text)shapes.elementAt(currentShape.getSelectedIndex())).setText(textField.getText());
-                dwb.repaint();
+                changedUpdate(e);
             }
 
 
             public void changedUpdate(DocumentEvent e) {
-                System.out.println("changedUpdate");
+                if (!doNotRecordHistory) {
+                    System.out.println("changedUpdate");
+                    History.histories.add(new History(History.ActionMode.TEXTCHANGE, shapes.elementAt(currentShape.getSelectedIndex()), ((Text)shapes.elementAt(currentShape.getSelectedIndex())).text));
+                    ((Text)shapes.elementAt(currentShape.getSelectedIndex())).setText(textField.getText());
+                    dwb.repaint();
+                }
             }
         });
 
@@ -344,6 +357,7 @@ class DrawBoard extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {
             if (DrawBoard.this.currentDrawMode == DrawMode.UNWRITEABLE) return;
+            else if (DrawBoard.this.currentShapeMode == ShapeMode.BLANK) return;
             else {
                 ++iShapeCount;
                 try {
@@ -370,6 +384,7 @@ class DrawBoard extends JPanel {
                 DrawBoard.this.repaint();
                 DrawBoard.this.actionMenu.currentShape.updateData();
                 DrawBoard.this.actionMenu.currentShape.setSelectedIndex(shapes.size()-1);
+                History.histories.add(new History(History.ActionMode.CREATE, shapes.lastElement()));
             }
         }
 
@@ -387,22 +402,32 @@ class DrawBoard extends JPanel {
     };
 
     private final MouseAdapter dbMoveMouseAdapter = new MouseAdapter() {
-        Point initPoint;
+        Point initPoint, lastPoint;
 
         @Override
         public void mousePressed(MouseEvent e) {
             initPoint = e.getPoint();
+            lastPoint = e.getPoint();
         }
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            Point lastPoint = e.getPoint();
-            System.out.println(initPoint.x - lastPoint.x);
+            Point currentPoint = e.getPoint();
+            System.out.println(lastPoint.x - currentPoint.x);
             if (selectedShapeIndex != -1) {
-                shapes.elementAt(selectedShapeIndex).move(lastPoint.x- initPoint.x, lastPoint.y- initPoint.y);
+                shapes.elementAt(selectedShapeIndex).move(currentPoint.x- lastPoint.x, currentPoint.y- lastPoint.y);
             }
             DrawBoard.this.repaint();
-            initPoint = lastPoint;
+            lastPoint = currentPoint;
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (selectedShapeIndex != -1) {
+                int x = lastPoint.x - initPoint.x;
+                int y = lastPoint.y - initPoint.y;
+                History.histories.add(new History(History.ActionMode.MOVE, shapes.elementAt(selectedShapeIndex), new Point(x, y)));
+            }
         }
     };
 
@@ -430,6 +455,7 @@ class DrawBoard extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {
             try {
+                History.histories.add(new History(History.ActionMode.ERASE, shapes.elementAt(selectedShapeIndex), shapes.elementAt(selectedShapeIndex).mask));
                 shapes.elementAt(selectedShapeIndex).addMask(e.getPoint(), true);
                 DrawBoard.this.repaint();
             } catch (Exception exception) {
@@ -483,7 +509,7 @@ class DrawBoard extends JPanel {
         }
     }
 
-    public void delShapeAt(int index) {
+    public boolean delShapeAt(int index) {
         try {
             shapes.removeElementAt(index);
             --iShapeCount;
@@ -491,8 +517,9 @@ class DrawBoard extends JPanel {
             actionMenu.currentShape.updateData();
             actionMenu.currentShape.setSelectedIndex(-1);
         } catch (Exception e) {
-            return;
+            return false;
         }
+        return true;
     }
 
     @Override
@@ -555,6 +582,7 @@ class Palette extends JPanel{
             Palette.this.currentColorblk.setBackground(colorBlock.color);
             Palette.this.currentColorblk.repaint();
             if (dwb.selectedShapeIndex != -1) {
+                History.histories.add(new History(History.ActionMode.LINECOLOR, dwb.getShapes().elementAt(dwb.selectedShapeIndex), dwb.getShapes().elementAt(dwb.selectedShapeIndex).borderColor));
                 dwb.getShapes().elementAt(dwb.selectedShapeIndex).borderColor = colorBlock.color;
             }
             dwb.repaint();
@@ -570,6 +598,7 @@ class Palette extends JPanel{
             Palette.this.currentColorblk.setBackground(colorBlock.color);
             Palette.this.currentColorblk.repaint();
             if (dwb.selectedShapeIndex != -1) {
+                History.histories.add(new History(History.ActionMode.FILLCOLOR, dwb.getShapes().elementAt(dwb.selectedShapeIndex), dwb.getShapes().elementAt(dwb.selectedShapeIndex).bgColor));
                 dwb.getShapes().elementAt(dwb.selectedShapeIndex).bgColor = colorBlock.color;
             }
             dwb.repaint();
