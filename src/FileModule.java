@@ -1,14 +1,16 @@
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.util.Vector;
 
 public class FileModule {
-    public static boolean saveFile(String filename, Vector<Shape> shapes, ImageObserver imageObserver) {
+    public static boolean saveFile(String filename, Vector<Shape> shapes, ImageObserver imageObserver) throws FileAlreadyExistsException, FileSystemException {
+        File file = new File(filename);
+        if (file.exists()) {
+            throw new FileAlreadyExistsException("文件"+file.getPath()+"已存在！请修改保存路径！");
+        }
         try {
             FileOutputStream fileOut = new FileOutputStream(filename);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -24,13 +26,16 @@ public class FileModule {
             out.close();
             fileOut.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new FileSystemException("保存文件出错！请检查文件路径！");
         }
         return true;
     }
 
-    public static boolean readFile(String filename, Vector<Shape> shapes, ImageObserver imageObserver) {
+    public static boolean readFile(String filename, Vector<Shape> shapes, ImageObserver imageObserver) throws FileNotFoundException {
+        String suffix = filename.substring(filename.lastIndexOf(".") + 1);
+        if (!suffix.toUpperCase().equals("paint".toUpperCase())) {
+            throw new FileNotFoundException("文件类型错误！");
+        }
         try {
             FileInputStream fileIn = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -44,8 +49,7 @@ public class FileModule {
             in.close();
             fileIn.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new FileNotFoundException("读取文件失败，请检查错误！");
         }
         return true;
     }

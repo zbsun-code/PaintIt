@@ -1,11 +1,16 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.rmi.NoSuchObjectException;
 import java.util.Vector;
 
@@ -40,21 +45,47 @@ public class Ui {
         loadFile.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                drawBoard.getShapes().removeAllElements();
-                FileModule.readFile("D:/shapes.paint", drawBoard.getShapes(), drawBoard);
-                drawBoard.repaint();
-                actionMenu.currentShape.updateData();
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new FileNameExtensionFilter("绘图文件(.paint)", "paint"));
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.showDialog(frame, "加载文件");
+                String filePath = fileChooser.getSelectedFile().getPath();
+                try {
+                    drawBoard.getShapes().removeAllElements();
+                    FileModule.readFile(filePath, drawBoard.getShapes(), drawBoard);
+                    drawBoard.repaint();
+                    actionMenu.currentShape.updateData();
+                } catch (FileNotFoundException exception) {
+                    JOptionPane.showMessageDialog(frame, exception.getMessage());
+                } catch (NullPointerException exception) {
+                    return;
+                }
             }
         });
 
         saveFile.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                FileModule.saveFile("D:/shapes.paint", drawBoard.getShapes(), drawBoard);
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new FileNameExtensionFilter("绘图文件(.paint)", "paint"));
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.showSaveDialog(frame);
+                String filePath = fileChooser.getSelectedFile().getPath();
+                if (!fileChooser.getFileFilter().getClass().equals(fileChooser.getAcceptAllFileFilter().getClass())
+                        && !filePath.toUpperCase().endsWith("paint".toUpperCase())) {
+                    filePath = filePath + ".paint";
+                }
+                try {
+                    FileModule.saveFile(filePath, drawBoard.getShapes(), drawBoard);
+                } catch (FileAlreadyExistsException exception) {
+                    JOptionPane.showMessageDialog(frame, exception.getMessage());
+                } catch (FileSystemException exception) {
+                    JOptionPane.showMessageDialog(frame, exception.getMessage());
+                } catch (NullPointerException exception) {
+                    return;
+                }
             }
         });
-
-
 
         frame.setVisible(true);
     }
