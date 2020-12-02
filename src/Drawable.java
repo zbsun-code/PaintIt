@@ -127,6 +127,7 @@ class Circle extends Shape {
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
         ig2.setStroke(new BasicStroke(this.lineWidth));
+        ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,(RenderingHints.VALUE_ANTIALIAS_ON));
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.x - initPoint.x));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
@@ -194,6 +195,7 @@ class Line extends Shape {
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
         ig2.setStroke(new BasicStroke(this.lineWidth));
+        ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,(RenderingHints.VALUE_ANTIALIAS_ON));
         ig2.drawLine(initPoint.x, initPoint.y, lastPoint.x, lastPoint.y);
         super.draw(ig2);
         ig2.dispose();
@@ -224,6 +226,7 @@ class Ellipse extends Shape {
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
         ig2.setStroke(new BasicStroke(this.lineWidth));
+        ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,(RenderingHints.VALUE_ANTIALIAS_ON));
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
@@ -271,6 +274,7 @@ class Curve extends Shape {
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
         ig2.setStroke(new BasicStroke(this.lineWidth));
+        ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,(RenderingHints.VALUE_ANTIALIAS_ON));
         for (int i=1; i<points.size(); ++i) {
             Point currentPoint = points.elementAt(i);
             Point pastPoint = points.elementAt(i-1);
@@ -324,6 +328,7 @@ class Text extends Shape {
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(borderColor);
         ig2.setFont(new Font(font, style, size));
+        ig2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,(RenderingHints.VALUE_TEXT_ANTIALIAS_GASP));
         ig2.drawString(text, initPoint.x, initPoint.y);
         super.draw(ig2);
         ig2.dispose();

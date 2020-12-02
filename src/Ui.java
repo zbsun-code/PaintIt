@@ -5,6 +5,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
@@ -377,6 +378,8 @@ class DrawBoard extends JPanel {
     private int iShapeCount = 0;
     public int lineWidth = 2;
     private final Vector<Shape> shapes = new Vector<>();
+    BufferedImage bufferedImage = new BufferedImage(1600,800, BufferedImage.TYPE_INT_ARGB);
+    Boolean isEditing = false; //controls paint action
 
     private final MouseAdapter dbDrawMouseAdapter = new MouseAdapter() {
         @Override
@@ -384,14 +387,17 @@ class DrawBoard extends JPanel {
             if (DrawBoard.this.currentDrawMode == DrawMode.UNWRITEABLE) return;
             else if (DrawBoard.this.currentShapeMode == ShapeMode.BLANK) return;
             else {
+                isEditing = true;
                 ++iShapeCount;
                 try {
                     shapes.add(addShape(DrawBoard.this.currentShapeMode, DrawBoard.this.foregroundColor));
+                    DrawBoard.this.actionMenu.currentShape.updateData();
+                    DrawBoard.this.actionMenu.currentShape.setSelectedIndex(shapes.size()-1);
                 } catch (NoSuchObjectException exception) {
                     exception.printStackTrace();
                 }
                 Point mouseInitialLocation = e.getPoint();
-                System.out.println("pressed");
+//                System.out.println("pressed");
                 shapes.lastElement().setInitPoint(mouseInitialLocation);
                 shapes.lastElement().setLastPoint(mouseInitialLocation);
                 shapes.lastElement().setLineWidth(DrawBoard.this.lineWidth);
@@ -404,13 +410,12 @@ class DrawBoard extends JPanel {
             else if (DrawBoard.this.currentShapeMode == ShapeMode.BLANK) return;
             else {
                 Point mouseLastLocation = e.getPoint();
-                System.out.println("released");
+//                System.out.println("released");
                 shapes.lastElement().setLastPoint(mouseLastLocation);
                 shapes.lastElement().sortPoint();
-                DrawBoard.this.repaint();
-                DrawBoard.this.actionMenu.currentShape.updateData();
-                DrawBoard.this.actionMenu.currentShape.setSelectedIndex(shapes.size()-1);
                 History.histories.add(new History(History.ActionMode.CREATE, shapes.lastElement()));
+                isEditing = false;
+                DrawBoard.this.repaint();
             }
         }
 
@@ -432,6 +437,17 @@ class DrawBoard extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent e) {
+            {
+                Graphics2D g2d = ((Graphics2D)bufferedImage.getGraphics());
+                g2d.setBackground(new Color(255,255,255,0));
+                g2d.clearRect(0,0,1800,800);
+                for (Drawable drawable : shapes) {
+                    if (selectedShapeIndex == -1 || (!drawable.equals(shapes.elementAt(selectedShapeIndex)))) {
+                        drawable.draw(bufferedImage.getGraphics());
+                    }
+                }
+            }
+            isEditing = true;
             initPoint = e.getPoint();
             lastPoint = e.getPoint();
         }
@@ -439,7 +455,7 @@ class DrawBoard extends JPanel {
         @Override
         public void mouseDragged(MouseEvent e) {
             Point currentPoint = e.getPoint();
-            System.out.println(lastPoint.x - currentPoint.x);
+//            System.out.println(lastPoint.x - currentPoint.x);
             if (selectedShapeIndex != -1) {
                 shapes.elementAt(selectedShapeIndex).move(currentPoint.x- lastPoint.x, currentPoint.y- lastPoint.y);
             }
@@ -453,6 +469,8 @@ class DrawBoard extends JPanel {
                 int x = lastPoint.x - initPoint.x;
                 int y = lastPoint.y - initPoint.y;
                 History.histories.add(new History(History.ActionMode.MOVE, shapes.elementAt(selectedShapeIndex), new Point(x, y)));
+                isEditing = false;
+                DrawBoard.this.repaint();
             }
         }
     };
@@ -461,6 +479,7 @@ class DrawBoard extends JPanel {
         @Override
         public void mouseReleased(MouseEvent e) {
             try {
+                isEditing = false;
                 shapes.elementAt(selectedShapeIndex).maskRemoveRedundancy();
                 DrawBoard.this.repaint();
             } catch (Exception exception) {
@@ -481,6 +500,17 @@ class DrawBoard extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {
             try {
+                {
+                    Graphics2D g2d = ((Graphics2D)bufferedImage.getGraphics());
+                    g2d.setBackground(new Color(255,255,255,0));
+                    g2d.clearRect(0,0,1800,800);
+                    for (Drawable drawable : shapes) {
+                        if (selectedShapeIndex == -1 || (!drawable.equals(shapes.elementAt(selectedShapeIndex)))) {
+                            drawable.draw(bufferedImage.getGraphics());
+                        }
+                    }
+                }
+                isEditing = true;
                 History.histories.add(new History(History.ActionMode.ERASE, shapes.elementAt(selectedShapeIndex), shapes.elementAt(selectedShapeIndex).mask));
                 shapes.elementAt(selectedShapeIndex).addMask(e.getPoint(), true);
                 DrawBoard.this.repaint();
@@ -551,9 +581,22 @@ class DrawBoard extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        for (Drawable drawable: shapes) {
-            drawable.draw(g);
+        //todo: fix moving bug
+        if (selectedShapeIndex != -1) {
+            Shape shapeToUpdate = this.shapes.elementAt(selectedShapeIndex);
+            shapeToUpdate.draw(g);
         }
+        if (!isEditing) {
+            Graphics2D g2d = ((Graphics2D)bufferedImage.getGraphics());
+            g2d.setBackground(new Color(255,255,255,0));
+            g2d.clearRect(0,0,1800,800);
+            for (Drawable drawable : shapes) {
+//                if (selectedShapeIndex == -1 || (!drawable.equals(shapes.elementAt(selectedShapeIndex)))) {
+                    drawable.draw(bufferedImage.getGraphics());
+//                }
+            }
+        }
+        g.drawImage(bufferedImage, 0, 0, null);
     }
 
     public Vector<Shape> getShapes() {
