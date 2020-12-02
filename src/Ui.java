@@ -2,11 +2,9 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.FileNotFoundException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
@@ -23,10 +21,14 @@ public class Ui {
         JMenu fileMenu = new JMenu("文件");
         JMenuItem loadFile = new JMenuItem("加载文件");
         JMenuItem saveFile = new JMenuItem("保存文件");
+        JMenu about = new JMenu("关于");
+        JMenuItem help = new JMenuItem("帮助");
 
         fileMenu.add(loadFile);
         fileMenu.add(saveFile);
         menuBar.add(fileMenu);
+        about.add(help);
+        menuBar.add(about);
         frame.setJMenuBar(menuBar);
 
         frame.setMinimumSize(new Dimension(800, 600));
@@ -160,6 +162,9 @@ class ActionMenu extends JPanel {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     dwb.selectedShapeIndex = currentShape.getSelectedIndex();
+                    palette.lineWidthSwitch.removeItemListener(palette.lineWidthListener);
+                    palette.lineWidthSwitch.setSelectedIndex(dwb.getShapes().elementAt(dwb.selectedShapeIndex).getLineWidth()/2-1);
+                    palette.lineWidthSwitch.addItemListener(palette.lineWidthListener);
                     System.out.println(currentShape.getSelectedIndex());
                     System.out.println(shapes.elementAt(currentShape.getSelectedIndex()).getClass());
                     if (shapes.elementAt(currentShape.getSelectedIndex()).getClass().toString().equals("class Text")) {
@@ -370,6 +375,7 @@ class DrawBoard extends JPanel {
     private ShapeMode currentShapeMode = ShapeMode.BLANK;
     private DrawMode currentDrawMode = DrawMode.UNWRITEABLE;
     private int iShapeCount = 0;
+    public int lineWidth = 2;
     private final Vector<Shape> shapes = new Vector<>();
 
     private final MouseAdapter dbDrawMouseAdapter = new MouseAdapter() {
@@ -388,6 +394,7 @@ class DrawBoard extends JPanel {
                 System.out.println("pressed");
                 shapes.lastElement().setInitPoint(mouseInitialLocation);
                 shapes.lastElement().setLastPoint(mouseInitialLocation);
+                shapes.lastElement().setLineWidth(DrawBoard.this.lineWidth);
             }
         }
 
@@ -632,6 +639,24 @@ class Palette extends JPanel{
     JLabel label = new JLabel("当前颜色");
     ColorBlock currentColorblk = new ColorBlock(new Dimension(50,50), Color.BLACK);
 
+    JComboBox<String> lineWidthSwitch = new JComboBox<>();
+    ItemListener lineWidthListener = new ItemListener() {
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                dwb.lineWidth = (lineWidthSwitch.getSelectedIndex() + 1) * 2;
+                if (dwb.selectedShapeIndex != -1) {
+                    Shape currentShape = dwb.getShapes().elementAt(dwb.selectedShapeIndex);
+                    if (!currentShape.getClass().equals("class Text")) {
+                        History.histories.add(new History(History.ActionMode.LINESTROKE, currentShape, currentShape.getLineWidth()));
+                        currentShape.setLineWidth(dwb.lineWidth);
+                        dwb.repaint();
+                    }
+                }
+            }
+        }
+    };
+
     Palette(DrawBoard drawBoard) {
         this.dwb = drawBoard;
         this.setPreferredSize(new Dimension(60, 500));
@@ -648,7 +673,13 @@ class Palette extends JPanel{
 
         this.add(label);
         this.add(currentColorblk);
-        System.out.println(colorblkBlack.getSize());
+
+        this.add(new JLabel("线条粗细"));
+        lineWidthSwitch.addItem("细");
+        lineWidthSwitch.addItem("中");
+        lineWidthSwitch.addItem("粗");
+        lineWidthSwitch.addItemListener(lineWidthListener);
+        this.add(lineWidthSwitch);
     }
 
     public void setFillColorMode() {

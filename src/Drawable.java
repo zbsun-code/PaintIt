@@ -14,6 +14,7 @@ abstract class Shape implements Drawable {
     public Color borderColor; //border color
     public Color bgColor; //background color
     public Vector<Point> mask; //eraser, different segment is separated by point(-1,-1)
+    public int lineWidth = 2;
     BufferedImage bi = new BufferedImage(1600, 800, BufferedImage.TYPE_INT_ARGB);
     ImageObserver imageObserver;
 
@@ -43,6 +44,14 @@ abstract class Shape implements Drawable {
 
     public void setBgColor(Color bgColor) {
         this.bgColor = bgColor;
+    }
+
+    public int getLineWidth() {
+        return this.lineWidth;
+    }
+
+    public void setLineWidth(int lineWidth) {
+        this.lineWidth = lineWidth;
     }
 
     Shape(Color borderColor, ImageObserver imageObserver) {
@@ -117,6 +126,7 @@ class Circle extends Shape {
         ig2.setBackground(new Color(255,255,255,0));
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
+        ig2.setStroke(new BasicStroke(this.lineWidth));
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.x - initPoint.x));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
@@ -154,6 +164,7 @@ class Rect extends Shape {
         ig2.setBackground(new Color(255,255,255,0));
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
+        ig2.setStroke(new BasicStroke(this.lineWidth));
         ig2.drawRect(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
@@ -182,6 +193,7 @@ class Line extends Shape {
         ig2.setBackground(new Color(255,255,255,0));
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
+        ig2.setStroke(new BasicStroke(this.lineWidth));
         ig2.drawLine(initPoint.x, initPoint.y, lastPoint.x, lastPoint.y);
         super.draw(ig2);
         ig2.dispose();
@@ -211,6 +223,7 @@ class Ellipse extends Shape {
         ig2.setBackground(new Color(255,255,255,0));
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
+        ig2.setStroke(new BasicStroke(this.lineWidth));
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
@@ -257,6 +270,7 @@ class Curve extends Shape {
         ig2.setBackground(new Color(255,255,255,0));
         ig2.clearRect(0,0,1600,800);
         ig2.setColor(this.borderColor);
+        ig2.setStroke(new BasicStroke(this.lineWidth));
         for (int i=1; i<points.size(); ++i) {
             Point currentPoint = points.elementAt(i);
             Point pastPoint = points.elementAt(i-1);
