@@ -2,7 +2,6 @@ import java.awt.*;
 import java.util.Vector;
 
 public class History {
-    //TODO: add more text edit history (font, style, size)
     public static Vector<History> histories = new Vector<>();
     public static void setDrawBoard(DrawBoard drawBoard) {
         History.drawBoard = drawBoard;

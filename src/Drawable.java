@@ -81,7 +81,6 @@ abstract class Shape implements Drawable {
     }
 
     protected void maskRemoveRedundancy() {
-        //TODO: not finished
         mask.removeIf(maskPoint -> (!(maskPoint.x < -9000 && maskPoint.y < -9000) && (maskPoint.x < initPoint.x && maskPoint.y < initPoint.y) || (maskPoint.x > lastPoint.x && maskPoint.y > lastPoint.y)));
     }
 
@@ -264,6 +263,14 @@ class Curve extends Shape {
             point.x = point.x + x;
             point.y = point.y + y;
         }
+
+        for (Point maskPoint: mask) {
+            if (maskPoint.x > -9000 && maskPoint.y > -9000) {
+                maskPoint.x = maskPoint.x+x;
+                maskPoint.y = maskPoint.y+y;
+            }
+        }
+
     }
 
     @Override

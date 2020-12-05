@@ -25,6 +25,16 @@ public class Ui {
         JMenu about = new JMenu("关于");
         JMenuItem help = new JMenuItem("帮助");
 
+        help.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                JOptionPane.showMessageDialog(frame,
+                        "在动作栏选择执行动作，在调色板选择颜色和线条粗细，用鼠标在画板上拖动即可作画",
+                        "帮助",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
         fileMenu.add(loadFile);
         fileMenu.add(saveFile);
         menuBar.add(fileMenu);
@@ -261,9 +271,9 @@ class ActionMenu extends JPanel {
                 else if (e.getSource().equals(btnDelete)) {
                     System.out.println("delete");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
-                    if (dwb.delShapeAt(dwb.selectedShapeIndex)){
-                        History.histories.add(new History(History.ActionMode.DELETE, shapes.elementAt(dwb.selectedShapeIndex)));
-                    }
+                    History.histories.add(new History(History.ActionMode.DELETE, shapes.elementAt(dwb.selectedShapeIndex)));
+                    dwb.delShapeAt(dwb.selectedShapeIndex);
+
                     currentShape.updateData();
                 }
                 else if (e.getSource().equals(btnUndo)) {
