@@ -88,7 +88,7 @@ public class History {
             }
         }
         drawBoard.actionMenu.currentShape.setSelectedIndex(-1);
-//        System.out.println(drawBoard.actionMenu.currentShape.getSelectedIndex());
+//      System.out.println(drawBoard.actionMenu.currentShape.getSelectedIndex());
         histories.remove(record);
         drawBoard.repaint();
     }

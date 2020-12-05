@@ -176,8 +176,8 @@ class ActionMenu extends JPanel {
                     palette.lineWidthSwitch.removeItemListener(palette.lineWidthListener);
                     palette.lineWidthSwitch.setSelectedIndex(dwb.getShapes().elementAt(dwb.selectedShapeIndex).getLineWidth()/2-1);
                     palette.lineWidthSwitch.addItemListener(palette.lineWidthListener);
-                    System.out.println(currentShape.getSelectedIndex());
-                    System.out.println(shapes.elementAt(currentShape.getSelectedIndex()).getClass());
+//                    //System.out.println(currentShape.getSelectedIndex());
+//                    //System.out.println(shapes.elementAt(currentShape.getSelectedIndex()).getClass());
                     if (shapes.elementAt(currentShape.getSelectedIndex()).getClass().toString().equals("class Text")) {
                         //TODO: add visible components
                         textField.setVisible(true);
@@ -212,32 +212,32 @@ class ActionMenu extends JPanel {
                 dwb.unsetMoveMode();
                 dwb.unsetEraserMode();
                 if (e.getSource().equals(btnCircle)) {
-                    System.out.println("circle");
+//                    //System.out.println("circle");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.CIRCLE);
                 }
                 else if (e.getSource().equals(btnEllipse)) {
-                    System.out.println("ellipse");
+//                    //System.out.println("ellipse");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.ELLIPSE);
                 }
                 else if (e.getSource().equals(btnRect)) {
-                    System.out.println("rect");
+//                    //System.out.println("rect");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.RECT);
                 }
                 else if (e.getSource().equals(btnLine)) {
-                    System.out.println("line");
+//                    //System.out.println("line");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.LINE);
                 }
                 else if (e.getSource().equals(btnCurve)) {
-                    System.out.println("curve");
+//                    //System.out.println("curve");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.CURVE);
                 }
                 else if (e.getSource().equals(btnFill)) {
-                    System.out.println("fill");
+//                    //System.out.println("fill");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     if (palette.isFillMode) {
                         palette.setLineColorMode();
@@ -248,28 +248,30 @@ class ActionMenu extends JPanel {
                     }
                 }
                 else if (e.getSource().equals(btnUnFill)) {
-                    System.out.println("unfill");
+//                    //System.out.println("unfill");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     shapes.elementAt(dwb.selectedShapeIndex).bgColor = null;
+                    dwb.backgroundColor = new Color(255,255,255,0);
+                    palette.update();
                     dwb.repaint();
                 }
                 else if (e.getSource().equals(btnAddText)) {
-                    System.out.println("text");
+//                    //System.out.println("text");
                     dwb.setDrawMode(DrawBoard.DrawMode.WRITEABLE);
                     dwb.setDrawShape(DrawBoard.ShapeMode.TEXT);
                 }
                 else if (e.getSource().equals(btnEraser)) {
-                    System.out.println("eraser");
+//                    //System.out.println("eraser");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     dwb.setEraserMode();
                 }
                 else if (e.getSource().equals(btnMove)) {
-                    System.out.println("move");
+//                    //System.out.println("move");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     dwb.setMoveMode();
                 }
                 else if (e.getSource().equals(btnDelete)) {
-                    System.out.println("delete");
+                    //System.out.println("delete");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     History.histories.add(new History(History.ActionMode.DELETE, shapes.elementAt(dwb.selectedShapeIndex)));
                     dwb.delShapeAt(dwb.selectedShapeIndex);
@@ -277,7 +279,7 @@ class ActionMenu extends JPanel {
                     currentShape.updateData();
                 }
                 else if (e.getSource().equals(btnUndo)) {
-                    System.out.println("undo");
+                    //System.out.println("undo");
                     dwb.setDrawMode(DrawBoard.DrawMode.UNWRITEABLE);
                     History.undo();
                     currentShape.updateData();
@@ -322,7 +324,7 @@ class ActionMenu extends JPanel {
 
             public void changedUpdate(DocumentEvent e) {
                 if (!doNotRecordHistory) {
-                    System.out.println("changedUpdate");
+                    //System.out.println("changedUpdate");
                     History.histories.add(new History(History.ActionMode.TEXTCHANGE, shapes.elementAt(currentShape.getSelectedIndex()), ((Text)shapes.elementAt(currentShape.getSelectedIndex())).text, null, -1, -1));
                     ((Text)shapes.elementAt(currentShape.getSelectedIndex())).setText(textField.getText());
                     dwb.repaint();
@@ -383,6 +385,7 @@ class DrawBoard extends JPanel {
     public ActionMenu actionMenu;
     public int selectedShapeIndex = -1;
     public Color foregroundColor = new Color(0,0,0);
+    public Color backgroundColor = new Color(255,255,255, 0);
     private ShapeMode currentShapeMode = ShapeMode.BLANK;
     private DrawMode currentDrawMode = DrawMode.UNWRITEABLE;
     private int iShapeCount = 0;
@@ -401,13 +404,14 @@ class DrawBoard extends JPanel {
                 ++iShapeCount;
                 try {
                     shapes.add(addShape(DrawBoard.this.currentShapeMode, DrawBoard.this.foregroundColor));
+                    shapes.lastElement().setBgColor(DrawBoard.this.backgroundColor);
                     DrawBoard.this.actionMenu.currentShape.updateData();
                     DrawBoard.this.actionMenu.currentShape.setSelectedIndex(shapes.size()-1);
                 } catch (NoSuchObjectException exception) {
                     exception.printStackTrace();
                 }
                 Point mouseInitialLocation = e.getPoint();
-//                System.out.println("pressed");
+//                //System.out.println("pressed");
                 shapes.lastElement().setInitPoint(mouseInitialLocation);
                 shapes.lastElement().setLastPoint(mouseInitialLocation);
                 shapes.lastElement().setLineWidth(DrawBoard.this.lineWidth);
@@ -420,7 +424,7 @@ class DrawBoard extends JPanel {
             else if (DrawBoard.this.currentShapeMode == ShapeMode.BLANK) return;
             else {
                 Point mouseLastLocation = e.getPoint();
-//                System.out.println("released");
+//                //System.out.println("released");
                 shapes.lastElement().setLastPoint(mouseLastLocation);
                 shapes.lastElement().sortPoint();
                 History.histories.add(new History(History.ActionMode.CREATE, shapes.lastElement()));
@@ -435,7 +439,7 @@ class DrawBoard extends JPanel {
             else if (DrawBoard.this.currentShapeMode == ShapeMode.BLANK) return;
             else {
                 Point ptMouseLocation = e.getPoint();
-//                System.out.println("dragged");
+//                //System.out.println("dragged");
                 shapes.lastElement().setLastPoint(ptMouseLocation);
             }
             DrawBoard.this.repaint();
@@ -465,7 +469,7 @@ class DrawBoard extends JPanel {
         @Override
         public void mouseDragged(MouseEvent e) {
             Point currentPoint = e.getPoint();
-//            System.out.println(lastPoint.x - currentPoint.x);
+//            //System.out.println(lastPoint.x - currentPoint.x);
             if (selectedShapeIndex != -1) {
                 shapes.elementAt(selectedShapeIndex).move(currentPoint.x- lastPoint.x, currentPoint.y- lastPoint.y);
             }
@@ -502,6 +506,7 @@ class DrawBoard extends JPanel {
             try {
                 shapes.elementAt(selectedShapeIndex).addMask(e.getPoint(), false);
                 DrawBoard.this.repaint();
+                Thread.sleep(14);
             } catch (Exception exception) {
 //                exception.printStackTrace();
             }
@@ -671,7 +676,7 @@ class Palette extends JPanel{
         @Override
         public void mousePressed(MouseEvent e) {
             ColorBlock colorBlock = (ColorBlock) e.getSource();
-            dwb.foregroundColor = colorBlock.color;
+            dwb.backgroundColor = colorBlock.color;
             Palette.this.currentColorblk.color = colorBlock.color;
             Palette.this.currentColorblk.setBackground(colorBlock.color);
             Palette.this.currentColorblk.repaint();
@@ -739,6 +744,12 @@ class Palette extends JPanel{
             colorBlock.removeMouseListener(lineColorMouseAdapter);
             colorBlock.addMouseListener(fillColorMouseAdapter);
         }
+        if (dwb.backgroundColor.getAlpha() != 0) {
+            currentColorblk.setBackground(dwb.backgroundColor);
+        } else {
+            currentColorblk.setBackground(Color.white);
+        }
+        currentColorblk.repaint();
         isFillMode = true;
     }
 
@@ -747,6 +758,21 @@ class Palette extends JPanel{
             colorBlock.removeMouseListener(fillColorMouseAdapter);
             colorBlock.addMouseListener(lineColorMouseAdapter);
         }
+        currentColorblk.setBackground(dwb.foregroundColor);
+        currentColorblk.repaint();
         isFillMode = false;
+    }
+
+    public void update() {
+        if (isFillMode) {
+            if (dwb.backgroundColor.getAlpha() != 0) {
+                currentColorblk.setBackground(dwb.backgroundColor);
+            } else {
+                currentColorblk.setBackground(Color.white);
+            }
+        } else {
+            currentColorblk.setBackground(dwb.foregroundColor);
+        }
+        currentColorblk.repaint();
     }
 }
