@@ -130,7 +130,7 @@ class Circle extends Shape {
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.x - initPoint.x));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
-            ig2.fillOval(Math.min(initPoint.x, lastPoint.x)+1, Math.min(initPoint.y, lastPoint.y)+1, Math.abs(lastPoint.x - initPoint.x)-2, Math.abs(lastPoint.x - initPoint.x)-2);
+            ig2.fillOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.x - initPoint.x));
         }
         super.draw(ig2);
         ig2.dispose();
@@ -168,7 +168,7 @@ class Rect extends Shape {
         ig2.drawRect(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
-            ig2.fillRect(Math.min(initPoint.x, lastPoint.x)+1, Math.min(initPoint.y, lastPoint.y)+1, Math.abs(lastPoint.x - initPoint.x)-2, Math.abs(lastPoint.y - initPoint.y)-2);
+            ig2.fillRect(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         }
         super.draw(ig2);
         ig2.dispose();
@@ -229,7 +229,7 @@ class Ellipse extends Shape {
         ig2.drawOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         if (this.bgColor != null) {
             ig2.setColor(this.bgColor);
-            ig2.fillOval(Math.min(initPoint.x, lastPoint.x)+1, Math.min(initPoint.y, lastPoint.y)+1, Math.abs(lastPoint.x - initPoint.x)-2, Math.abs(lastPoint.y - initPoint.y)-2);
+            ig2.fillOval(Math.min(initPoint.x, lastPoint.x), Math.min(initPoint.y, lastPoint.y), Math.abs(lastPoint.x - initPoint.x), Math.abs(lastPoint.y - initPoint.y));
         }
         super.draw(ig2);
         ig2.dispose();

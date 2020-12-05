@@ -591,11 +591,6 @@ class DrawBoard extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        //todo: fix moving bug
-        if (selectedShapeIndex != -1) {
-            Shape shapeToUpdate = this.shapes.elementAt(selectedShapeIndex);
-            shapeToUpdate.draw(g);
-        }
         if (!isEditing) {
             Graphics2D g2d = ((Graphics2D)bufferedImage.getGraphics());
             g2d.setBackground(new Color(255,255,255,0));
@@ -607,6 +602,10 @@ class DrawBoard extends JPanel {
             }
         }
         g.drawImage(bufferedImage, 0, 0, null);
+        if (isEditing && selectedShapeIndex != -1) {
+            Shape shapeToUpdate = this.shapes.elementAt(selectedShapeIndex);
+            shapeToUpdate.draw(g);
+        }
     }
 
     public Vector<Shape> getShapes() {
